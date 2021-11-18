@@ -1,0 +1,4 @@
+Bus Servo Terminal V1.7
+1.modify the LOGO on the interface
+2.Add to high voltage 14V model
+3.Support for multi-language switching

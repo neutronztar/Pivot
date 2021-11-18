@@ -1,0 +1,7 @@
+In this example, all the codes which related to Arduino are developed in Arduino Leonardo and pass the test of Arduino Leonardo, Arduino UNO and Arduino MEGA 2560.
+
+
+LOBOT_DEBUG Macro is used to controlled whether printing debug data or not. It may cause unknown error after opening macro in Arduino UND, we haven't done in-depth test.
+
+Please remember to disconnect Arduino UNO from servo while you are programming for Arduino UNO, or it may fail to program because of a certain error.
+
