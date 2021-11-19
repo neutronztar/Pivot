@@ -1,7 +1,9 @@
+# make one finger move
 from math import *
 import lx16
 import time
 
+# IDs
 KNUCKLE = 0
 FINGER = 1
 TIP = 2
@@ -38,17 +40,17 @@ motor = lx16.lx16(22)
 
 
 # move in circle
-radius = 50
+radius = 30
 x_offset = -40
 y_offset = 120
 angle = 0 #in radians
-steps = 32
+steps = 16
 
 while True:
     x = -cos(angle)*radius + x_offset
     y = sin(angle)*radius + y_offset
     z = 0
-    move_arm(x, y, z, 40)
+    move_arm(x, y, z, 100)
     angle += 2*pi/steps
     if angle > 2*pi - 0.01:
         angle = 0
