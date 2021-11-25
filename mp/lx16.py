@@ -1,5 +1,4 @@
-import machine as m  # needed so that uart can be used
-from time import sleep, sleep_ms, sleep_us  # in case any delay is needed
+import machine as m    # needed so that uart can be used
 import utime
 
 # every command available for the servo
@@ -41,7 +40,7 @@ SERVO_ERROR_LOCKED_ROTOR = 4
 header = [0x55, 0x55]  # defined to be used later (initials of the packet)
 
 
-class lx16(object):
+class lx16:
 
     # constructor
     # default uart used in serialid, especified for esp32
@@ -239,7 +238,7 @@ class lx16(object):
     # =======================READ METHODS===================
     # every reading method is here
 
-    def read_goal_position(self, ID, rxbuf=15, timeout=5, rtime=500):
+    def read_goal_position(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         resp = sendPacket(
             bytearray(makePacket(ID, SERVO_MOVE_TIME_READ)),
             self.uart,
@@ -250,7 +249,7 @@ class lx16(object):
         )
         return resp
 
-    def read_wait_goal_position(self, ID, rxbuf=15, timeout=5, rtime=500):
+    def read_wait_goal_position(self, ID, rxbuf=15, timeout=5, rtime=430): #BROKEN?
         resp = sendPacket(
             bytearray(makePacket(ID, SERVO_MOVE_TIME_WAIT_READ)),
             self.uart,
@@ -261,7 +260,7 @@ class lx16(object):
         )
         return resp
 
-    def read_id(self, ID, rxbuf=15, timeout=5, rtime=500):
+    def read_id(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         resp = sendPacket(
             bytearray(makePacket(ID, SERVO_ID_READ)),
             self.uart,
@@ -272,7 +271,7 @@ class lx16(object):
         )
         return resp
 
-    def read_angle_offset(self, ID, rxbuf=15, timeout=5, rtime=500):
+    def read_angle_offset(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         resp = sendPacket(
             bytearray(makePacket(ID, SERVO_ANGLE_OFFSET_READ)),
             self.uart,
@@ -283,7 +282,7 @@ class lx16(object):
         )
         return resp
 
-    def read_angle_limit(self, ID, rxbuf=15, timeout=5, rtime=500):
+    def read_angle_limit(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         resp = sendPacket(
             bytearray(makePacket(ID, SERVO_ANGLE_LIMIT_READ)),
             self.uart,
@@ -294,7 +293,7 @@ class lx16(object):
         )
         return resp
 
-    def read_vin_limit(self, ID, rxbuf=15, timeout=5, rtime=500):
+    def read_vin_limit(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         resp = sendPacket(
             bytearray(makePacket(ID, SERVO_VIN_LIMIT_READ)),
             self.uart,
@@ -305,7 +304,7 @@ class lx16(object):
         )
         return resp
 
-    def read_temp_max_limit(self, ID, rxbuf=15, timeout=5, rtime=500):
+    def read_temp_max_limit(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         resp = sendPacket(
             bytearray(makePacket(ID, SERVO_TEMP_MAX_LIMIT_READ)),
             self.uart,
@@ -316,7 +315,7 @@ class lx16(object):
         )
         return resp
 
-    def read_temp(self, ID, rxbuf=15, timeout=5, rtime=500):
+    def read_temp(self, ID, rxbuf=15, timeout=5, rtime=500): #rtime good
         resp = sendPacket(
             bytearray(makePacket(ID, SERVO_TEMP_READ)),
             self.uart,
@@ -327,7 +326,7 @@ class lx16(object):
         )
         return resp
 
-    def read_vin(self, ID, rxbuf=15, timeout=5, rtime=500):
+    def read_vin(self, ID, rxbuf=15, timeout=5, rtime=500): #rtime good
         resp = sendPacket(
             bytearray(makePacket(ID, SERVO_VIN_READ)),
             self.uart,
@@ -338,7 +337,7 @@ class lx16(object):
         )
         return resp
 
-    def read_pos(self, ID, rxbuf=15, timeout=5, rtime=500):
+    def read_pos(self, ID, rxbuf=15, timeout=5, rtime=500): #rtime good
         resp = sendPacket(
             bytearray(makePacket(ID, SERVO_POS_READ)),
             self.uart,
@@ -349,7 +348,7 @@ class lx16(object):
         )
         return resp
 
-    def read_servo_mode(self, ID, rxbuf=15, timeout=5, rtime=500):
+    def read_servo_mode(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         resp = sendPacket(
             bytearray(makePacket(ID, SERVO_OR_MOTOR_MODE_READ)),
             self.uart,
@@ -360,7 +359,7 @@ class lx16(object):
         )
         return resp
 
-    def read_load_status(self, ID, rxbuf=15, timeout=5, rtime=500):
+    def read_load_status(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         resp = sendPacket(
             bytearray(makePacket(ID, SERVO_LOAD_OR_UNLOAD_READ)),
             self.uart,
@@ -371,7 +370,7 @@ class lx16(object):
         )
         return resp
 
-    def read_led_ctrl(self, ID, rxbuf=15, timeout=5, rtime=500):
+    def read_led_ctrl(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         resp = sendPacket(
             bytearray(makePacket(ID, SERVO_LED_CTRL_READ)),
             self.uart,
@@ -382,7 +381,7 @@ class lx16(object):
         )
         return resp
 
-    def read_led_error(self, ID, rxbuf=15, timeout=5, rtime=500):
+    def read_led_error(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         resp = sendPacket(
             bytearray(makePacket(ID, SERVO_LED_ERROR_READ)),
             self.uart,
@@ -395,7 +394,8 @@ class lx16(object):
 
 
 def sendPacket(packet, uart, dir_com, rtime, rxbuf, timeout):
-    dir_com.on()  # turn on so packet is sent
+    _ = uart.read()# clear the RX buffer
+    dir_com.on()   # turn on so packet is sent
     uart.write(packet)
 
     # time is traced in order to know when to listen (0.85 or 0.5 ms. very short!)
