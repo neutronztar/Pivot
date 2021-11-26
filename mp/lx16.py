@@ -393,6 +393,69 @@ class lx16:
         return resp
 
 
+    def validate(self, resp, ID):
+        """turn raw motor response into something useful"""
+
+        # check header is there
+        if resp[0:2] != header:
+            print('invalid resp header')
+            return None
+
+        # check resp is of proper length
+        if resp[3] is not len(resp)-3:
+            print('invalid resp len')
+            return None
+        
+        # check checksum
+        if checksum(resp[2:-1]) != resp[-1]:
+            print('invalid resp checksum')
+            return None
+        
+        # check ID
+        if resp[2] != ID:
+            print('ID mismatch')
+            return None
+        
+
+        # 1 param responses
+        if resp[3] == 4:
+            if resp[4] == SERVO_ANGLE_OFFSET_READ:
+                return resp[5].to_bytes(1, 'big')      #* 240/1000  #ADD NEGATIVE SUPPORT
+            else:
+                return resp[5]
+        
+        # 2 param responses
+        if resp[3] == 5:
+            if resp[4] == SERVO_VIN_READ:
+                return (resp[5] + (resp[6]<<8)) / 1000
+
+            if resp[4] == SERVO_POS_READ: # negative angles broken
+                return (resp[5] + (resp[6]<<8)) * 240/1000
+
+        # 4 param responses
+        if resp[3] == 7:
+            if resp[4] in [SERVO_MOVE_TIME_READ, SERVO_MOVE_TIME_WAIT_READ]:
+                angle = (resp[5] + (resp[6]<<8)) * 240/1000
+                time = resp[7] + (resp[8]<<8)
+                return angle, time
+
+            if resp[4] == SERVO_ANGLE_LIMIT_READ:
+                min = (resp[5] + (resp[6]<<8)) * 240/1000
+                max = (resp[7] + (resp[8]<<8)) * 240/1000
+                return min, max
+
+            if resp[4] == SERVO_VIN_LIMIT_READ:
+                min = (resp[5] + (resp[6]<<8)) / 1000
+                max = (resp[7] + (resp[8]<<8)) / 1000
+                return min, max
+
+            if resp[4] == SERVO_OR_MOTOR_MODE_READ:
+                mode = resp[5]
+                # need to add support for motor mode speed
+                return mode
+        
+
+
 def sendPacket(packet, uart, dir_com, rtime, rxbuf, timeout):
     _ = uart.read()# clear the RX buffer
     dir_com.on()   # turn on so packet is sent
@@ -442,3 +505,6 @@ def word(l, h):
 
 def checksum(packet):
     return 255 - (sum(packet) % 256)
+
+
+

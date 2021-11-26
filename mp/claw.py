@@ -19,7 +19,29 @@ class Claw:
     """da claw"""
 
     def __init__(self, dir_com):
+        """dir_com: pin for changing direction of communication"""
         self.motor = lx16.lx16(dir_com)
+
+
+    def query_motors(self):
+        
+        temp = []
+        """
+        temp limits
+        angle
+        anglke limits
+        angle offsets
+        Vin
+        Vin limits
+        servo mode
+        load status
+        led ctrl
+        led error
+        """
+        for id in range(15):
+            self.motor.read_temp(id)
+
+        return None
 
 
     def set_offsets(self):
