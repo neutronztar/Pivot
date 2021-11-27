@@ -239,220 +239,260 @@ class lx16:
     # every reading method is here
 
     def read_goal_position(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
+        command = SERVO_MOVE_TIME_READ
         resp = sendPacket(
-            bytearray(makePacket(ID, SERVO_MOVE_TIME_READ)),
+            bytearray(makePacket(ID, command)),
             self.uart,
             self.dir_com,
             rtime,
             rxbuf,
             timeout,
         )
-        return resp
+        if self.validate(resp, ID, command):
+            angle = (resp[5] + (resp[6]<<8)) * 240/1000
+            time = resp[7] + (resp[8]<<8)
+            return angle, time
+        else:
+            return None, None
 
     def read_wait_goal_position(self, ID, rxbuf=15, timeout=5, rtime=430): #BROKEN?
+        command = SERVO_MOVE_TIME_WAIT_READ
         resp = sendPacket(
-            bytearray(makePacket(ID, SERVO_MOVE_TIME_WAIT_READ)),
+            bytearray(makePacket(ID, command)),
             self.uart,
             self.dir_com,
             rtime,
             rxbuf,
             timeout,
         )
-        return resp
+        if self.validate(resp, ID, command):
+            angle = (resp[5] + (resp[6]<<8)) * 240/1000
+            time = resp[7] + (resp[8]<<8)
+            return angle, time
+        else:
+            return None, None
 
     def read_id(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
+        command = SERVO_ID_READ
         resp = sendPacket(
-            bytearray(makePacket(ID, SERVO_ID_READ)),
+            bytearray(makePacket(ID, command)),
             self.uart,
             self.dir_com,
             rtime,
             rxbuf,
             timeout,
         )
-        return resp
+        if self.validate(resp, ID, command):
+            return resp[5]
+        else:
+            return None
 
     def read_angle_offset(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
+        command = SERVO_ANGLE_OFFSET_READ
         resp = sendPacket(
-            bytearray(makePacket(ID, SERVO_ANGLE_OFFSET_READ)),
+            bytearray(makePacket(ID, command)),
             self.uart,
             self.dir_com,
             rtime,
             rxbuf,
             timeout,
         )
-        return resp
+        if self.validate(resp, ID, command):
+            return twos_comp(resp[5], 1) * 240/1000
+        else:
+            return None
 
     def read_angle_limit(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
+        command = SERVO_ANGLE_LIMIT_READ
         resp = sendPacket(
-            bytearray(makePacket(ID, SERVO_ANGLE_LIMIT_READ)),
+            bytearray(makePacket(ID, command)),
             self.uart,
             self.dir_com,
             rtime,
             rxbuf,
             timeout,
         )
-        return resp
+        if self.validate(resp, ID, command):
+            min = (resp[5] + (resp[6]<<8)) * 240/1000
+            max = (resp[7] + (resp[8]<<8)) * 240/1000
+            return min, max
+        else:
+            return None, None
 
     def read_vin_limit(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
+        command = SERVO_VIN_LIMIT_READ
         resp = sendPacket(
-            bytearray(makePacket(ID, SERVO_VIN_LIMIT_READ)),
+            bytearray(makePacket(ID, command)),
             self.uart,
             self.dir_com,
             rtime,
             rxbuf,
             timeout,
         )
-        return resp
+        if self.validate(resp, ID, command):
+            min = (resp[5] + (resp[6]<<8)) / 1000
+            max = (resp[7] + (resp[8]<<8)) / 1000
+            return min, max
+        else:
+            return None, None
 
     def read_temp_max_limit(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
+        command = SERVO_TEMP_MAX_LIMIT_READ
         resp = sendPacket(
-            bytearray(makePacket(ID, SERVO_TEMP_MAX_LIMIT_READ)),
+            bytearray(makePacket(ID, command)),
             self.uart,
             self.dir_com,
             rtime,
             rxbuf,
             timeout,
         )
-        return resp
+        if self.validate(resp, ID, command):
+            return resp[5]
+        else:
+            return None
 
     def read_temp(self, ID, rxbuf=15, timeout=5, rtime=500): #rtime good
+        command = SERVO_TEMP_READ
         resp = sendPacket(
-            bytearray(makePacket(ID, SERVO_TEMP_READ)),
+            bytearray(makePacket(ID, command)),
             self.uart,
             self.dir_com,
             rtime,
             rxbuf,
             timeout,
         )
-        return resp
+        if self.validate(resp, ID, command):
+            return resp[5]
+        else:
+            return None
 
     def read_vin(self, ID, rxbuf=15, timeout=5, rtime=500): #rtime good
+        command = SERVO_VIN_READ
         resp = sendPacket(
-            bytearray(makePacket(ID, SERVO_VIN_READ)),
+            bytearray(makePacket(ID, command)),
             self.uart,
             self.dir_com,
             rtime,
             rxbuf,
             timeout,
         )
-        return resp
+        if self.validate(resp, ID, command):
+            return (resp[5] + (resp[6]<<8)) / 1000
+        else:
+            return None
 
     def read_pos(self, ID, rxbuf=15, timeout=5, rtime=500): #rtime good
+        command = SERVO_POS_READ
         resp = sendPacket(
-            bytearray(makePacket(ID, SERVO_POS_READ)),
+            bytearray(makePacket(ID, command)),
             self.uart,
             self.dir_com,
             rtime,
             rxbuf,
             timeout,
         )
-        return resp
+        if self.validate(resp, ID, command):
+            return twos_comp((resp[5] + (resp[6]<<8)), 2) * 240/1000
+        else:
+            return None
 
     def read_servo_mode(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
+        command = SERVO_OR_MOTOR_MODE_READ
         resp = sendPacket(
-            bytearray(makePacket(ID, SERVO_OR_MOTOR_MODE_READ)),
+            bytearray(makePacket(ID, command)),
             self.uart,
             self.dir_com,
             rtime,
             rxbuf,
             timeout,
         )
-        return resp
+        if self.validate(resp, ID, command):
+            mode = resp[5]
+            # need to add support for motor mode speed
+            return mode
+        else:
+            return None
 
     def read_load_status(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
+        command = SERVO_LOAD_OR_UNLOAD_READ
         resp = sendPacket(
-            bytearray(makePacket(ID, SERVO_LOAD_OR_UNLOAD_READ)),
+            bytearray(makePacket(ID, command)),
             self.uart,
             self.dir_com,
             rtime,
             rxbuf,
             timeout,
         )
-        return resp
+        if self.validate(resp, ID, command):
+            return resp[5]
+        else:
+            return None
 
     def read_led_ctrl(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
+        command = SERVO_LED_CTRL_READ
         resp = sendPacket(
-            bytearray(makePacket(ID, SERVO_LED_CTRL_READ)),
+            bytearray(makePacket(ID, command)),
             self.uart,
             self.dir_com,
             rtime,
             rxbuf,
             timeout,
         )
-        return resp
+        if self.validate(resp, ID, command):
+            return resp[5]
+        else:
+            return None
 
     def read_led_error(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
+        command = SERVO_LED_ERROR_READ
         resp = sendPacket(
-            bytearray(makePacket(ID, SERVO_LED_ERROR_READ)),
+            bytearray(makePacket(ID, command)),
             self.uart,
             self.dir_com,
             rtime,
             rxbuf,
             timeout,
         )
-        return resp
+        if self.validate(resp, ID, command):
+            return resp[5]
+        else:
+            return None
 
 
-    def validate(self, resp, ID):
-        """turn raw motor response into something useful"""
+    def validate(self, resp, ID, command):
+        """validate servo responses"""
+        if resp == None:
+            print('no reply from motor')
+            return False
 
         # check header is there
-        if resp[0:2] != header:
+        if resp[0:2] != bytes(header):
             print('invalid resp header')
-            return None
+            return False
 
         # check resp is of proper length
         if resp[3] is not len(resp)-3:
             print('invalid resp len')
-            return None
+            return False
         
         # check checksum
         if checksum(resp[2:-1]) != resp[-1]:
             print('invalid resp checksum')
-            return None
+            return False
         
         # check ID
         if resp[2] != ID:
             print('ID mismatch')
-            return None
+            return False
         
-
-        # 1 param responses
-        if resp[3] == 4:
-            if resp[4] == SERVO_ANGLE_OFFSET_READ:
-                return resp[5].to_bytes(1, 'big')      #* 240/1000  #ADD NEGATIVE SUPPORT
-            else:
-                return resp[5]
+        # check for command mismatch
+        if resp[4] != command:
+            print('got wrong command back')
+            return False
         
-        # 2 param responses
-        if resp[3] == 5:
-            if resp[4] == SERVO_VIN_READ:
-                return (resp[5] + (resp[6]<<8)) / 1000
-
-            if resp[4] == SERVO_POS_READ: # negative angles broken
-                return (resp[5] + (resp[6]<<8)) * 240/1000
-
-        # 4 param responses
-        if resp[3] == 7:
-            if resp[4] in [SERVO_MOVE_TIME_READ, SERVO_MOVE_TIME_WAIT_READ]:
-                angle = (resp[5] + (resp[6]<<8)) * 240/1000
-                time = resp[7] + (resp[8]<<8)
-                return angle, time
-
-            if resp[4] == SERVO_ANGLE_LIMIT_READ:
-                min = (resp[5] + (resp[6]<<8)) * 240/1000
-                max = (resp[7] + (resp[8]<<8)) * 240/1000
-                return min, max
-
-            if resp[4] == SERVO_VIN_LIMIT_READ:
-                min = (resp[5] + (resp[6]<<8)) / 1000
-                max = (resp[7] + (resp[8]<<8)) / 1000
-                return min, max
-
-            if resp[4] == SERVO_OR_MOTOR_MODE_READ:
-                mode = resp[5]
-                # need to add support for motor mode speed
-                return mode
+        # response is valid
+        return True
+        
         
 
 
@@ -472,7 +512,7 @@ def sendPacket(packet, uart, dir_com, rtime, rxbuf, timeout):
     while (utime.ticks_ms() - tinit) < timeout:  # timeout of 1600us
         resp = uart.read(rxbuf)
         if resp is not None:
-            return list(resp)
+            return resp
     return None
 
 
@@ -507,4 +547,12 @@ def checksum(packet):
     return 255 - (sum(packet) % 256)
 
 
-
+def twos_comp(val, byte_len):
+    if byte_len == 1:
+        if val & (1 << 7):    # if most sig bit is 1
+            val = val | ~0xff # make all above bits 1
+        return val
+    if byte_len == 2:
+        if val & (1 << 15):      # if most sig bit is 1
+            val = val | ~0xffff  # make all above bits 1
+        return val

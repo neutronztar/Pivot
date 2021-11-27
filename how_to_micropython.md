@@ -25,3 +25,16 @@ exec(open('file.py').read())
 
 # MicroPython Tools
 ampy rshell mpfshell
+
+
+# All importable modules
+help('modules')
+
+# check ram
+import micropython as mp
+mp.mem_info(True)
+
+# check file-system space
+import os
+os.statvfs('/')
+https://docs.micropython.org/en/latest/library/os.html#:~:text=file%20or%20directory.-,os.statvfs,-(path)

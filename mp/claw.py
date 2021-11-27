@@ -24,22 +24,45 @@ class Claw:
 
 
     def query_motors(self):
+        info = {id: {} for id in range(15)}
+
+        def smart_round(val):
+            if val is None:
+                return None
+            return round(val)
+
+        for id in info:
+            info[id]['temp\t'] = self.motor.read_temp(id)
+            info[id]['temp_max_limit'] = self.motor.read_temp_max_limit(id)
+            info[id]['angle\t'] = smart_round(self.motor.read_pos(id))
+            min, max = self.motor.read_angle_limit(id)
+            info[id]['angle_min'], info[id]['angle_max'] = smart_round(min), smart_round(max)
+            info[id]['angle_offset'] = smart_round(self.motor.read_angle_offset(id))
+            info[id]['vin\t'] = self.motor.read_vin(id)
+            min, max = self.motor.read_vin_limit(id)
+            info[id]['vin_min\t'], info[id]['vin_max\t'] = min, max
+            info[id]['mode\t'] = self.motor.read_servo_mode(id)
+            info[id]['load_status'] = self.motor.read_load_status(id)
+            info[id]['led_ctrl'] = self.motor.read_led_ctrl(id)
+            info[id]['led_error'] = self.motor.read_led_error(id)
         
-        temp = []
-        """
-        temp limits
-        angle
-        anglke limits
-        angle offsets
-        Vin
-        Vin limits
-        servo mode
-        load status
-        led ctrl
-        led error
-        """
-        for id in range(15):
-            self.motor.read_temp(id)
+        # header
+        print('motor\t\t', end='')
+        for id in info:
+            print(id, end='\t')
+            if (id+1)%3 == 0:
+                print('\t', end='')
+        print('\n---------------------------------------------------------------------------------', end='')
+        print('-----------------------------------------------------------------------------------')
+
+        # body
+        for key in info[0]:
+            print(key, end='\t')
+            for id in info:
+                print(info[id][key], end='\t')
+                if (id+1)%3 == 0:
+                    print('\t', end='')
+            print('\n', end='')
 
         return None
 
@@ -80,6 +103,16 @@ class Claw:
             angle += 2*pi/steps
             if angle > 2*pi - 0.01:
                 angle = 0
+
+
+    def spin(self, radius=70, stride=1, center=(-30, 0, 160)):
+        """
+        --spin ball--
+        stride: in radians
+        """
+        
+        
+        pass
 
 
     @time_it
