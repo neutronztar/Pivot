@@ -509,7 +509,7 @@ def sendPacket(packet, uart, dir_com, rtime, rxbuf, timeout):
     dir_com.off()  # off to receive packet
 
     tinit = utime.ticks_ms()
-    while (utime.ticks_ms() - tinit) < timeout:  # timeout of 1600us
+    while (utime.ticks_ms() - tinit) < timeout:  # timeout of 1600us    # NOT USING TICKS_DIFF()!!!!!!! MAYBE CULPRIT FOR RANDOMLY NOT WORKING
         resp = uart.read(rxbuf)
         if resp is not None:
             return resp

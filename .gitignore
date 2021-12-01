@@ -1,2 +1,3 @@
 how_to_git
 .vscode/*
+/mp/__pycache__/*

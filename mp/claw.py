@@ -85,12 +85,22 @@ class Claw:
         return None
 
 
-    def move_arm(self, finger, xyz, move_time):
+    def move_finger_to_coords(self, finger, xyz, move_time):
         knuckleAngle, fingerAngle, tipAngle = self.calc_angles(finger, xyz)
         self.motor.goal_position(MOTOR_ID[finger][0], knuckleAngle, move_time, timeout=0)
         self.motor.goal_position(MOTOR_ID[finger][1], fingerAngle,  move_time, timeout=0)
         self.motor.goal_position(MOTOR_ID[finger][2], tipAngle,     move_time, timeout=0)
         time.sleep(move_time/1000)
+    
+
+    def move_finger(self, finger, angles, move_time):
+        """
+        Move all motors in finger to given angles
+        finger: which finger to move?
+        angles: (knuckleAngle, fingerAngle, tipAngle)
+        """
+        for servo in range(3):
+            self.motor.goal_position(MOTOR_ID[finger][servo], angles[servo], move_time, timeout=0)
 
 
     def hor_circle(self, finger, xyz, radius, steps, stepTime):
@@ -99,28 +109,86 @@ class Claw:
         while True:
             xpos = xyz[0] + radius*cos(angle)
             ypos = xyz[1] + radius*sin(angle)
-            self.move_arm(finger, (xpos, ypos, zpos), stepTime)
+            self.move_finger_to_coords(finger, (xpos, ypos, zpos), stepTime)
             angle += 2*pi/steps
             if angle > 2*pi - 0.01:
                 angle = 0
 
 
-    def spin(self, radius=70, stride=1, center=(-30, 0, 160)):
+    def spin(self, radius=60, stride=1.15, center=(-30, 0, 160), offset_angle=0.8, num_frames=15, frameTime=100):
         """
         --spin ball--
-        stride: in radians
+        stride: in radians, must be less than 2*pi/5
+        offset_angle: in radians
+        num_frames: must be a multiple of 5
+        frameTime: time between frames in ms
         """
+
+        # Num of frames where the finger is touching the globe
+        frames_on_circle = int(num_frames * 0.6 + 1)
+        frames_off_circle = num_frames - frames_on_circle
+
+        def smart_add(num1, num2):
+            sum = num1 + num2
+            while sum >= num_frames:
+                sum -= num_frames
+            return sum
+
+        frame = 0 # Starting frame of finger 0, frames of other finger are offset
+        while True:
+            # Calculation start time
+            calcStartTime = time.ticks_ms()
+            
+            # Calculate coordinates of all finger tips
+            xyz = [(0,0,0)] * 5
+            for finger in range(5):
+                frame_offset = smart_add(frame, int(num_frames*0.4*finger))
+                fingerStartAngle = offset_angle + finger*2*pi/5 # Where each finger starts at its frame 0
+                
+                # if the finger is touching the globe in this frame
+                if frame_offset < frames_on_circle:
+                    angle = fingerStartAngle + frame_offset*stride/frames_on_circle
+                    x = cos(angle) * radius
+                    y = sin(angle) * radius
+                    xyz[finger] = vect_add(center, (x, y, 0))
+                else:
+                    increment = stride/(frames_off_circle+1)
+                    angle = fingerStartAngle + stride - (1 + frame_offset - frames_on_circle) * increment
+                    x = cos(angle) * radius
+                    y = sin(angle) * radius
+                    z = -20
+                    xyz[finger] = vect_add(center, (x, y, z))
+                    
+            # Calculate motor angles for all fingers
+            angles = [(0,0,0)] * 5
+            for finger in range(5):
+                angles[finger] = self.calc_angles(finger, xyz[finger])
+
+            # Calculation end time
+            calcEndTime = time.ticks_ms()
+            calcTime = time.ticks_diff(calcEndTime, calcStartTime)
+            print('Frame', frame, 'calculations took', calcTime, 'ms.')
+
+            # Wait
+            while time.ticks_diff(time.ticks_ms(), calcStartTime) < frameTime:
+                pass
+
+            # Move all fingers to frame
+            for finger in range(5):
+                self.move_finger(finger, angles[finger], frameTime+30)
+            print('frame', frame)
+            print('moved finger0 to', angles[0])
+
+            # Increment frame counter
+            frame = smart_add(frame, 1)
         
-        
-        pass
 
 
-    @time_it
     def calc_angles(self, finger, xyz):
         """
         xyz: tuple of position you want finger tip to be
         finger: which finger? 0-4
-        returns angle of each motor to get the tip to that position
+        returns angle of each motor to get the tip to that position (degrees)
         """
 
         # CALCULATE KNUCKLE ANGLE

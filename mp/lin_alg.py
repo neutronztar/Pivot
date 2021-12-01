@@ -31,6 +31,11 @@ def vect_sub(a, b):
     return (a[0]-b[0], a[1]-b[1], a[2]-b[2])
 
 
+def vect_add(a, b):
+    '''add two 3D vectors'''
+    return (a[0]+b[0], a[1]+b[1], a[2]+b[2])
+
+
 def sss(closeSide1, closeSide2, farSide):
     '''Calculate an angle of a Side-Side-Side triangle in radians'''
     return acos( (closeSide1**2+closeSide2**2-farSide**2) / (2*closeSide1*closeSide2) )
