@@ -154,7 +154,44 @@ class Claw:
         return stepPos, z
 
 
-    def spin(self, radius=60, stride=1.15, center=(0, 0, 160), numFrames=-50, frameTime=60):
+    def calc_frame_angles(self, phase, stride, offsetAngle, radius, center):
+        """Calculate all 15 motor angles for a frame"""
+
+        # Calculate coordinates of all finger tips
+        xyz = [(0,0,0)] * 5
+        for finger in range(5):
+            phaseOffset = (phase + 144 * finger) % 360 # each finger is 144 degrees out of phase from the last
+            fingerStartAngle = offsetAngle + finger*2*pi/5 # Where each finger starts at its frame 0 (radians)
+            stepPos, z = self.finger_path(phaseOffset)
+            angle = fingerStartAngle + stepPos * stride
+            x = cos(angle) * radius
+            y = sin(angle) * radius
+            xyz[finger] = vect_add(center, (x, y, z))
+        
+        # Use above coordinates to calculate motor angles for all fingers
+        angles = [(0,0,0)] * 5
+        for finger in range(5):
+            angles[finger] = self.calc_angles(finger, xyz[finger])
+
+        return angles
+
+    
+    def move_to_frame(self, angles, moveTime, firstLoop):
+        """Move all 15 fingers to given angles in moveTime ms"""
+
+        # Slow for first frame cause we don't know current positions
+        if firstLoop:
+            for finger in range(5):
+                self.move_finger(finger, angles[finger], 800)
+            time.sleep_ms(800)
+        
+        # Regular speed for all other frames
+        else:
+            for finger in range(5):
+                self.move_finger(finger, angles[finger], moveTime)
+
+
+    def spin_old(self, knob, radius=60, stride=1.15, center=[0, 0, 150], numFrames=-50, frameTime=60):
         """
         ---spin ball---
         stride: in radians, must be less than 2*pi/5
@@ -174,6 +211,9 @@ class Claw:
         while True:
             # Calculation start time
             calcStartTime = time.ticks_ms()
+
+            # map knob value to z
+            center[0] = 3 * knob.value()
             
             # Calculate coordinates of all finger tips
             xyz = [(0,0,0)] * 5
