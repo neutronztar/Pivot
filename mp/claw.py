@@ -1,5 +1,5 @@
 import time
-from math import pi, degrees
+from math import pi, degrees, isclose
 import lx16
 from constants import *
 from lin_alg import *
@@ -39,12 +39,13 @@ class Claw:
             info[id]['angle_min'], info[id]['angle_max'] = smart_round(min), smart_round(max)
             info[id]['angle_offset'] = smart_round(self.motor.read_angle_offset(id))
             info[id]['vin\t'] = self.motor.read_vin(id)
-            min, max = self.motor.read_vin_limit(id)
-            info[id]['vin_min\t'], info[id]['vin_max\t'] = min, max
+            info[id]['vin_min\t'], info[id]['vin_max\t'] = self.motor.read_vin_limit(id)
             info[id]['mode\t'] = self.motor.read_servo_mode(id)
             info[id]['load_status'] = self.motor.read_load_status(id)
             info[id]['led_ctrl'] = self.motor.read_led_ctrl(id)
             info[id]['led_error'] = self.motor.read_led_error(id)
+            goal_angle, goal_time = self.motor.read_goal_position(id)
+            info[id]['goal_angle'], info[id]['goal_time'] = smart_round(goal_angle), goal_time
         
         # header
         print('motor\t\t', end='')
@@ -100,7 +101,23 @@ class Claw:
         angles: (knuckleAngle, fingerAngle, tipAngle)
         """
         for servo in range(3):
+            #for check in range(3):
+                # Send move command
             self.motor.goal_position(MOTOR_ID[finger][servo], angles[servo], move_time, timeout=0)
+                
+                # Check that it got command
+                # angle, time = self.motor.read_goal_position(MOTOR_ID[finger][servo])
+                # if isclose(angle, angles[servo], abs_tol=0.9) and move_time == time:
+                #     break
+                # else:
+                #     print('Try', check, 'failed for finger', finger, 'servo', servo)
+
+
+    def move_in_sync(self, knuckleAngle, fingerAngle, tipAngle, moveTime):
+        """Move all fingers at the same time"""
+        angles = (knuckleAngle, fingerAngle, tipAngle)
+        for finger in range(5):
+            self.move_finger(finger, angles, moveTime)
 
 
     def hor_circle(self, finger, xyz, radius, steps, stepTime):
@@ -115,26 +132,45 @@ class Claw:
                 angle = 0
 
 
-    def spin(self, radius=60, stride=1.15, center=(-30, 0, 160), offset_angle=0.8, num_frames=15, frameTime=100):
+    def finger_path(self, phase):
         """
-        --spin ball--
+        If you plot this function it is a graph of the motion of each finger
+        phase: 0-259, phase the finger is in
+        returns:
+            stepPos: offset from finger's step start position (0-1)
+            z: height offset from globe plane
+        """
+        stepHeight = 35 # mm
+        
+        if 0 <= phase <= 215:
+            stepPos = phase/215
+            z = 0
+        elif 215 < phase < 360:
+            stepPos = -phase/145 + 72/29
+            z = stepHeight/2*cos(radians(phase-215)/0.4) - stepHeight/2
+        else:
+            raise ValueError('Input must be 0-259')
+
+        return stepPos, z
+
+
+    def spin(self, radius=60, stride=1.15, center=(0, 0, 160), numFrames=-50, frameTime=60):
+        """
+        ---spin ball---
         stride: in radians, must be less than 2*pi/5
-        offset_angle: in radians
-        num_frames: must be a multiple of 5
+        center: tuple, center of the circle that the finger tips move along
+        offsetAngle: in radians
+        numFrames: must be a multiple of 5, (max 360)
         frameTime: time between frames in ms
         """
-
-        # Num of frames where the finger is touching the globe
-        frames_on_circle = int(num_frames * 0.6 + 1)
-        frames_off_circle = num_frames - frames_on_circle
+        offsetAngle = -stride / 2
 
         def smart_add(num1, num2):
-            sum = num1 + num2
-            while sum >= num_frames:
-                sum -= num_frames
-            return sum
-
-        frame = 0 # Starting frame of finger 0, frames of other finger are offset
+            return (num1 + num2) % 360
+        
+        phase = 0
+        moveStartTime = time.ticks_ms()
+        firstLoop = True
         while True:
             # Calculation start time
             calcStartTime = time.ticks_ms()
@@ -142,23 +178,14 @@ class Claw:
             # Calculate coordinates of all finger tips
             xyz = [(0,0,0)] * 5
             for finger in range(5):
-                frame_offset = smart_add(frame, int(num_frames*0.4*finger))
-                fingerStartAngle = offset_angle + finger*2*pi/5 # Where each finger starts at its frame 0
-                
-                # if the finger is touching the globe in this frame
-                if frame_offset < frames_on_circle:
-                    angle = fingerStartAngle + frame_offset*stride/frames_on_circle
-                    x = cos(angle) * radius
-                    y = sin(angle) * radius
-                    xyz[finger] = vect_add(center, (x, y, 0))
-                else:
-                    increment = stride/(frames_off_circle+1)
-                    angle = fingerStartAngle + stride - (1 + frame_offset - frames_on_circle) * increment
-                    x = cos(angle) * radius
-                    y = sin(angle) * radius
-                    z = -20
-                    xyz[finger] = vect_add(center, (x, y, z))
-                    
+                phaseOffset = smart_add(phase, 144*finger) # each finger is 144 degrees out of phase from the last
+                fingerStartAngle = offsetAngle + finger*2*pi/5 # Where each finger starts at its frame 0 (radians)
+                stepPos, z = self.finger_path(phaseOffset)
+                angle = fingerStartAngle + stepPos * stride
+                x = cos(angle) * radius
+                y = sin(angle) * radius
+                xyz[finger] = vect_add(center, (x, y, z))
+
             # Calculate motor angles for all fingers
             angles = [(0,0,0)] * 5
             for finger in range(5):
@@ -166,23 +193,32 @@ class Claw:
 
             # Calculation end time
             calcEndTime = time.ticks_ms()
-            calcTime = time.ticks_diff(calcEndTime, calcStartTime)
-            print('Frame', frame, 'calculations took', calcTime, 'ms.')
+            print('calcs took', time.ticks_diff(calcEndTime, calcStartTime), 'ms')
 
-            # Wait
-            while time.ticks_diff(time.ticks_ms(), calcStartTime) < frameTime:
+            # ------Wait------
+            while time.ticks_diff(time.ticks_ms(), moveStartTime) < frameTime:
                 pass
+            
+            # Move start time
+            moveStartTime = time.ticks_ms()
 
             # Move all fingers to frame
-            for finger in range(5):
-                self.move_finger(finger, angles[finger], frameTime+30)
-            print('frame', frame)
-            print('moved finger0 to', angles[0])
+            if firstLoop: # slow for first frame cause we don't know current positions
+                for finger in range(5):
+                    self.move_finger(finger, angles[finger], 1200)
+                time.sleep_ms(1200)
+                firstLoop = False
+            else:
+                for finger in range(5):
+                    self.move_finger(finger, angles[finger], frameTime)
 
-            # Increment frame counter
-            frame = smart_add(frame, 1)
+            # Move end time
+            moveEndTime = time.ticks_ms()
+            print('moving took', time.ticks_diff(moveEndTime, moveStartTime), 'ms')
+
+            # Increment phase
+            phase = smart_add(phase, 360/numFrames)
         
-
 
     def calc_angles(self, finger, xyz):
         """

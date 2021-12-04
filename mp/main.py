@@ -4,7 +4,7 @@ from claw import Claw
 
 if __name__ == "__main__":
     claw = Claw(22)
-    claw.spin(radius=60, frameTime=70)
+    claw.spin()
 
     #claw.hor_circle(4, (60, 0, 150), 40, 16, 200)
     

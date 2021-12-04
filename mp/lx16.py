@@ -240,20 +240,24 @@ class lx16:
 
     def read_goal_position(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         command = SERVO_MOVE_TIME_READ
-        resp = sendPacket(
-            bytearray(makePacket(ID, command)),
-            self.uart,
-            self.dir_com,
-            rtime,
-            rxbuf,
-            timeout,
-        )
-        if self.validate(resp, ID, command):
-            angle = (resp[5] + (resp[6]<<8)) * 240/1000
-            time = resp[7] + (resp[8]<<8)
-            return angle, time
-        else:
-            return None, None
+        for attempt in range(5):
+            resp = sendPacket(
+                bytearray(makePacket(ID, command)),
+                self.uart,
+                self.dir_com,
+                rtime,
+                rxbuf,
+                timeout,
+            )
+            if self.validate(resp, ID, command):
+                angle = (resp[5] + (resp[6]<<8)) * 240/1000
+                time = resp[7] + (resp[8]<<8)
+                return angle, time
+            else:
+                print('sending read_goal_position command again')
+            
+        # if all 5 attempts failed
+        return None, None
 
     def read_wait_goal_position(self, ID, rxbuf=15, timeout=5, rtime=430): #BROKEN?
         command = SERVO_MOVE_TIME_WAIT_READ
@@ -415,18 +419,22 @@ class lx16:
 
     def read_load_status(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         command = SERVO_LOAD_OR_UNLOAD_READ
-        resp = sendPacket(
-            bytearray(makePacket(ID, command)),
-            self.uart,
-            self.dir_com,
-            rtime,
-            rxbuf,
-            timeout,
-        )
-        if self.validate(resp, ID, command):
-            return resp[5]
-        else:
-            return None
+        for attempt in range(5):
+            resp = sendPacket(
+                bytearray(makePacket(ID, command)),
+                self.uart,
+                self.dir_com,
+                rtime,
+                rxbuf,
+                timeout,
+            )
+            if self.validate(resp, ID, command):
+                return resp[5]
+            else:
+                print('sending read_load_status command again')
+        
+        # If all 5 attempts failed
+        return None
 
     def read_led_ctrl(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         command = SERVO_LED_CTRL_READ
@@ -503,13 +511,13 @@ def sendPacket(packet, uart, dir_com, rtime, rxbuf, timeout):
 
     # time is traced in order to know when to listen (0.85 or 0.5 ms. very short!)
     tinit = utime.ticks_us()
-    while (utime.ticks_us() - tinit) < rtime:
+    while utime.ticks_diff(utime.ticks_us(), tinit) < rtime:
         pass
 
     dir_com.off()  # off to receive packet
 
     tinit = utime.ticks_ms()
-    while (utime.ticks_ms() - tinit) < timeout:  # timeout of 1600us    # NOT USING TICKS_DIFF()!!!!!!! MAYBE CULPRIT FOR RANDOMLY NOT WORKING
+    while (utime.ticks_ms() - tinit) < timeout:  # timeout of 1600us
         resp = uart.read(rxbuf)
         if resp is not None:
             return resp

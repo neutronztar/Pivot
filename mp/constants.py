@@ -2,10 +2,10 @@ from math import radians, sin, cos
 
 
 # Distance from center of palm to axis 1 for each finger
-D = (116, 116, 116, 116, 76)
+D = (91, 91, 91, 91, 91)
 
 # Angle from X-axis for each finger
-THETA_DEG = (121.5, 160.5, 199.5, 238.5, 340.5)
+THETA_DEG = (0, 72, 144, 216, 288)
 THETA = tuple(map(radians, THETA_DEG))
 
 # Vector for each of the finger start positions
@@ -25,7 +25,7 @@ TIP_LEN = 118.04
 MOTOR_ID = ((0,1,2), (3,4,5), (6,7,8), (9,10,11), (12,13,14))
 
 # Offest Angles (knuckle,finger,tip) for each finger
-OFFSET_ANGLE = ((-1,-2,9), (1,-2,9), (-1,-6,9), (1,-4,6), (-1,-6,6))
+OFFSET_ANGLE = ((-1,-2,9), (1,-2,9), (-1,-6,9), (1,-4,6), (-1,-6,10))
 
 # Motor angle limits - limits move with the offsets!
 KNUCKLE_LIMIT = (45, 135)
