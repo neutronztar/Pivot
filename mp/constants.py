@@ -1,4 +1,5 @@
 from math import radians, sin, cos
+from micropython import const
 
 
 # Distance from center of palm to axis 1 for each finger
@@ -18,8 +19,8 @@ D_VECT = (
 )
 
 # Lengths (mm)
-FINGER_LEN = 85.38
-TIP_LEN = 118.04
+FINGER_LEN = const(85) # exact: 85.38
+TIP_LEN = const(118)   # exact: 118.04
 
 # Motor IDs (knuckle,finger,tip) for each finger
 MOTOR_ID = ((0,1,2), (3,4,5), (6,7,8), (9,10,11), (12,13,14))

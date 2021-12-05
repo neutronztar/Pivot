@@ -1,16 +1,18 @@
 import time
 from math import pi, degrees, isclose
+from micropython import const
 import lx16
 from constants import *
 from lin_alg import *
 
 
 def time_it(func):
+    """Decorator that times a function and prints how long it took"""
     def new_func(*args, **kwargs):
-        old = time.ticks_us()
+        startTime = time.ticks_us()
         val = func(*args, **kwargs)
-        new = time.ticks_us()
-        print("time of", func.__name__, time.ticks_diff(new, old), "us")
+        timeTaken = time.ticks_diff(time.ticks_us(), startTime)
+        print("time of", func.__name__, f"{timeTaken:,d}", "us")
         return val
     return new_func
 
@@ -153,7 +155,7 @@ class Claw:
 
         return stepPos, z
 
-
+    @time_it
     def calc_frame_angles(self, phase, stride, offsetAngle, radius, center):
         """Calculate all 15 motor angles for a frame"""
 
@@ -175,7 +177,7 @@ class Claw:
 
         return angles
 
-    
+
     def move_to_frame(self, angles, moveTime, firstLoop):
         """Move all 15 fingers to given angles in moveTime ms"""
 
