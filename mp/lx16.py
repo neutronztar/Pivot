@@ -1,40 +1,41 @@
 import machine as m    # needed so that uart can be used
+from micropython import const
 import utime
 
 # every command available for the servo
-SERVO_ID_ALL = 0xFE
-SERVO_MOVE_TIME_WRITE = 1
-SERVO_MOVE_TIME_READ = 2
-SERVO_MOVE_TIME_WAIT_WRITE = 7
-SERVO_MOVE_TIME_WAIT_READ = 8
-SERVO_MOVE_START = 11
-SERVO_MOVE_STOP = 12
-SERVO_ID_WRITE = 13
-SERVO_ID_READ = 14
-SERVO_ANGLE_OFFSET_ADJUST = 17
-SERVO_ANGLE_OFFSET_WRITE = 18
-SERVO_ANGLE_OFFSET_READ = 19
-SERVO_ANGLE_LIMIT_WRITE = 20
-SERVO_ANGLE_LIMIT_READ = 21
-SERVO_VIN_LIMIT_WRITE = 22
-SERVO_VIN_LIMIT_READ = 23
-SERVO_TEMP_MAX_LIMIT_WRITE = 24
-SERVO_TEMP_MAX_LIMIT_READ = 25
-SERVO_TEMP_READ = 26
-SERVO_VIN_READ = 27
-SERVO_POS_READ = 28
-SERVO_OR_MOTOR_MODE_WRITE = 29
-SERVO_OR_MOTOR_MODE_READ = 30
-SERVO_LOAD_OR_UNLOAD_WRITE = 31
-SERVO_LOAD_OR_UNLOAD_READ = 32
-SERVO_LED_CTRL_WRITE = 33
-SERVO_LED_CTRL_READ = 34
-SERVO_LED_ERROR_WRITE = 35
-SERVO_LED_ERROR_READ = 36
+SERVO_ID_ALL = const(0xFE)
+SERVO_MOVE_TIME_WRITE = const(1)
+SERVO_MOVE_TIME_READ = const(2)
+SERVO_MOVE_TIME_WAIT_WRITE = const(7)
+SERVO_MOVE_TIME_WAIT_READ = const(8)
+SERVO_MOVE_START = const(11)
+SERVO_MOVE_STOP = const(12)
+SERVO_ID_WRITE = const(13)
+SERVO_ID_READ = const(14)
+SERVO_ANGLE_OFFSET_ADJUST = const(17)
+SERVO_ANGLE_OFFSET_WRITE = const(18)
+SERVO_ANGLE_OFFSET_READ = const(19)
+SERVO_ANGLE_LIMIT_WRITE = const(20)
+SERVO_ANGLE_LIMIT_READ = const(21)
+SERVO_VIN_LIMIT_WRITE = const(22)
+SERVO_VIN_LIMIT_READ = const(23)
+SERVO_TEMP_MAX_LIMIT_WRITE = const(24)
+SERVO_TEMP_MAX_LIMIT_READ = const(25)
+SERVO_TEMP_READ = const(26)
+SERVO_VIN_READ = const(27)
+SERVO_POS_READ = const(28)
+SERVO_OR_MOTOR_MODE_WRITE = const(29)
+SERVO_OR_MOTOR_MODE_READ = const(30)
+SERVO_LOAD_OR_UNLOAD_WRITE = const(31)
+SERVO_LOAD_OR_UNLOAD_READ = const(32)
+SERVO_LED_CTRL_WRITE = const(33)
+SERVO_LED_CTRL_READ = const(34)
+SERVO_LED_ERROR_WRITE = const(35)
+SERVO_LED_ERROR_READ = const(36)
 
-SERVO_ERROR_OVER_TEMPERATURE = 1
-SERVO_ERROR_OVER_VOLTAGE = 2
-SERVO_ERROR_LOCKED_ROTOR = 4
+SERVO_ERROR_OVER_TEMPERATURE = const(1)
+SERVO_ERROR_OVER_VOLTAGE = const(2)
+SERVO_ERROR_LOCKED_ROTOR = const(4)
 
 
 header = [0x55, 0x55]  # defined to be used later (initials of the packet)
@@ -254,168 +255,208 @@ class lx16:
                 time = resp[7] + (resp[8]<<8)
                 return angle, time
             else:
-                print('sending read_goal_position command again')
+                print('sending', func.__name__, 'command again')
             
         # if all 5 attempts failed
         return None, None
 
     def read_wait_goal_position(self, ID, rxbuf=15, timeout=5, rtime=430): #BROKEN?
         command = SERVO_MOVE_TIME_WAIT_READ
-        resp = sendPacket(
-            bytearray(makePacket(ID, command)),
-            self.uart,
-            self.dir_com,
-            rtime,
-            rxbuf,
-            timeout,
-        )
-        if self.validate(resp, ID, command):
-            angle = (resp[5] + (resp[6]<<8)) * 240/1000
-            time = resp[7] + (resp[8]<<8)
-            return angle, time
-        else:
-            return None, None
+        for attempt in range(5):
+            resp = sendPacket(
+                bytearray(makePacket(ID, command)),
+                self.uart,
+                self.dir_com,
+                rtime,
+                rxbuf,
+                timeout,
+            )
+            if self.validate(resp, ID, command):
+                angle = (resp[5] + (resp[6]<<8)) * 240/1000
+                time = resp[7] + (resp[8]<<8)
+                return angle, time
+            else:
+                print('sending', command, 'command again')
+        
+        # if all 5 attempts failed
+        return None, None
 
     def read_id(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         command = SERVO_ID_READ
-        resp = sendPacket(
-            bytearray(makePacket(ID, command)),
-            self.uart,
-            self.dir_com,
-            rtime,
-            rxbuf,
-            timeout,
-        )
-        if self.validate(resp, ID, command):
-            return resp[5]
-        else:
-            return None
+        for attempt in range(5):
+            resp = sendPacket(
+                bytearray(makePacket(ID, command)),
+                self.uart,
+                self.dir_com,
+                rtime,
+                rxbuf,
+                timeout,
+            )
+            if self.validate(resp, ID, command):
+                return resp[5]
+            else:
+                print('sending', command, 'command again')
+        
+        # if all 5 attempts failed
+        return None
 
     def read_angle_offset(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         command = SERVO_ANGLE_OFFSET_READ
-        resp = sendPacket(
-            bytearray(makePacket(ID, command)),
-            self.uart,
-            self.dir_com,
-            rtime,
-            rxbuf,
-            timeout,
-        )
-        if self.validate(resp, ID, command):
-            return twos_comp(resp[5], 1) * 240/1000
-        else:
-            return None
+        for attempt in range(5):
+            resp = sendPacket(
+                bytearray(makePacket(ID, command)),
+                self.uart,
+                self.dir_com,
+                rtime,
+                rxbuf,
+                timeout,
+            )
+            if self.validate(resp, ID, command):
+                return twos_comp(resp[5], 1) * 240/1000
+            else:
+                print('sending', command, 'command again')
+        
+        # if all 5 attempts failed
+        return None
 
     def read_angle_limit(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         command = SERVO_ANGLE_LIMIT_READ
-        resp = sendPacket(
-            bytearray(makePacket(ID, command)),
-            self.uart,
-            self.dir_com,
-            rtime,
-            rxbuf,
-            timeout,
-        )
-        if self.validate(resp, ID, command):
-            min = (resp[5] + (resp[6]<<8)) * 240/1000
-            max = (resp[7] + (resp[8]<<8)) * 240/1000
-            return min, max
-        else:
-            return None, None
+        for attempt in range(5):
+            resp = sendPacket(
+                bytearray(makePacket(ID, command)),
+                self.uart,
+                self.dir_com,
+                rtime,
+                rxbuf,
+                timeout,
+            )
+            if self.validate(resp, ID, command):
+                min = (resp[5] + (resp[6]<<8)) * 240/1000
+                max = (resp[7] + (resp[8]<<8)) * 240/1000
+                return min, max
+            else:
+                print('sending', command, 'command again')
+        
+        # if all 5 attempts failed
+        return None, None
 
     def read_vin_limit(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         command = SERVO_VIN_LIMIT_READ
-        resp = sendPacket(
-            bytearray(makePacket(ID, command)),
-            self.uart,
-            self.dir_com,
-            rtime,
-            rxbuf,
-            timeout,
-        )
-        if self.validate(resp, ID, command):
-            min = (resp[5] + (resp[6]<<8)) / 1000
-            max = (resp[7] + (resp[8]<<8)) / 1000
-            return min, max
-        else:
-            return None, None
+        for attempt in range(5):
+            resp = sendPacket(
+                bytearray(makePacket(ID, command)),
+                self.uart,
+                self.dir_com,
+                rtime,
+                rxbuf,
+                timeout,
+            )
+            if self.validate(resp, ID, command):
+                min = (resp[5] + (resp[6]<<8)) / 1000
+                max = (resp[7] + (resp[8]<<8)) / 1000
+                return min, max
+            else:
+                print('sending', command, 'command again')
+        
+        # if all 5 attempts failed
+        return None, None
 
     def read_temp_max_limit(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         command = SERVO_TEMP_MAX_LIMIT_READ
-        resp = sendPacket(
-            bytearray(makePacket(ID, command)),
-            self.uart,
-            self.dir_com,
-            rtime,
-            rxbuf,
-            timeout,
-        )
-        if self.validate(resp, ID, command):
-            return resp[5]
-        else:
-            return None
+        for attempt in range(5):
+            resp = sendPacket(
+                bytearray(makePacket(ID, command)),
+                self.uart,
+                self.dir_com,
+                rtime,
+                rxbuf,
+                timeout,
+            )
+            if self.validate(resp, ID, command):
+                return resp[5]
+            else:
+                print('sending', command, 'command again')
+        
+        # if all 5 attempts failed
+        return None
 
     def read_temp(self, ID, rxbuf=15, timeout=5, rtime=500): #rtime good
         command = SERVO_TEMP_READ
-        resp = sendPacket(
-            bytearray(makePacket(ID, command)),
-            self.uart,
-            self.dir_com,
-            rtime,
-            rxbuf,
-            timeout,
-        )
-        if self.validate(resp, ID, command):
-            return resp[5]
-        else:
-            return None
+        for attempt in range(5):
+            resp = sendPacket(
+                bytearray(makePacket(ID, command)),
+                self.uart,
+                self.dir_com,
+                rtime,
+                rxbuf,
+                timeout,
+            )
+            if self.validate(resp, ID, command):
+                return resp[5]
+            else:
+                print('sending', command, 'command again')
+        
+        # if all 5 attempts failed
+        return None
 
     def read_vin(self, ID, rxbuf=15, timeout=5, rtime=500): #rtime good
         command = SERVO_VIN_READ
-        resp = sendPacket(
-            bytearray(makePacket(ID, command)),
-            self.uart,
-            self.dir_com,
-            rtime,
-            rxbuf,
-            timeout,
-        )
-        if self.validate(resp, ID, command):
-            return (resp[5] + (resp[6]<<8)) / 1000
-        else:
-            return None
+        for attempt in range(5):
+            resp = sendPacket(
+                bytearray(makePacket(ID, command)),
+                self.uart,
+                self.dir_com,
+                rtime,
+                rxbuf,
+                timeout,
+            )
+            if self.validate(resp, ID, command):
+                return (resp[5] + (resp[6]<<8)) / 1000
+            else:
+                print('sending', command, 'command again')
+        
+        # if all 5 attempts failed
+        return None
 
     def read_pos(self, ID, rxbuf=15, timeout=5, rtime=500): #rtime good
         command = SERVO_POS_READ
-        resp = sendPacket(
-            bytearray(makePacket(ID, command)),
-            self.uart,
-            self.dir_com,
-            rtime,
-            rxbuf,
-            timeout,
-        )
-        if self.validate(resp, ID, command):
-            return twos_comp((resp[5] + (resp[6]<<8)), 2) * 240/1000
-        else:
-            return None
+        for attempt in range(5):
+            resp = sendPacket(
+                bytearray(makePacket(ID, command)),
+                self.uart,
+                self.dir_com,
+                rtime,
+                rxbuf,
+                timeout,
+            )
+            if self.validate(resp, ID, command):
+                return twos_comp((resp[5] + (resp[6]<<8)), 2) * 240/1000
+            else:
+                print('sending', command, 'command again')
+        
+        # if all 5 attempts failed
+        return None
 
     def read_servo_mode(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         command = SERVO_OR_MOTOR_MODE_READ
-        resp = sendPacket(
-            bytearray(makePacket(ID, command)),
-            self.uart,
-            self.dir_com,
-            rtime,
-            rxbuf,
-            timeout,
-        )
-        if self.validate(resp, ID, command):
-            mode = resp[5]
-            # need to add support for motor mode speed
-            return mode
-        else:
-            return None
+        for attempt in range(5):
+            resp = sendPacket(
+                bytearray(makePacket(ID, command)),
+                self.uart,
+                self.dir_com,
+                rtime,
+                rxbuf,
+                timeout,
+            )
+            if self.validate(resp, ID, command):
+                mode = resp[5]
+                # need to add support for motor mode speed
+                return mode
+            else:
+                print('sending', command, 'command again')
+        
+        # if all 5 attempts failed
+        return None
 
     def read_load_status(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         command = SERVO_LOAD_OR_UNLOAD_READ
@@ -431,40 +472,48 @@ class lx16:
             if self.validate(resp, ID, command):
                 return resp[5]
             else:
-                print('sending read_load_status command again')
+                print('sending', command, 'command again')
         
         # If all 5 attempts failed
         return None
 
     def read_led_ctrl(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         command = SERVO_LED_CTRL_READ
-        resp = sendPacket(
-            bytearray(makePacket(ID, command)),
-            self.uart,
-            self.dir_com,
-            rtime,
-            rxbuf,
-            timeout,
-        )
-        if self.validate(resp, ID, command):
-            return resp[5]
-        else:
-            return None
+        for attempt in range(5):
+            resp = sendPacket(
+                bytearray(makePacket(ID, command)),
+                self.uart,
+                self.dir_com,
+                rtime,
+                rxbuf,
+                timeout,
+            )
+            if self.validate(resp, ID, command):
+                return resp[5]
+            else:
+                print('sending', command, 'command again')
+        
+        # If all 5 attempts failed
+        return None
 
     def read_led_error(self, ID, rxbuf=15, timeout=5, rtime=430): #rtime=500 was too slow
         command = SERVO_LED_ERROR_READ
-        resp = sendPacket(
-            bytearray(makePacket(ID, command)),
-            self.uart,
-            self.dir_com,
-            rtime,
-            rxbuf,
-            timeout,
-        )
-        if self.validate(resp, ID, command):
-            return resp[5]
-        else:
-            return None
+        for attempt in range(5):
+            resp = sendPacket(
+                bytearray(makePacket(ID, command)),
+                self.uart,
+                self.dir_com,
+                rtime,
+                rxbuf,
+                timeout,
+            )
+            if self.validate(resp, ID, command):
+                return resp[5]
+            else:
+                print('sending', command, 'command again')
+        
+        # If all 5 attempts failed
+        return None
 
 
     def validate(self, resp, ID, command):
@@ -502,7 +551,6 @@ class lx16:
         return True
         
         
-
 
 def sendPacket(packet, uart, dir_com, rtime, rxbuf, timeout):
     _ = uart.read()# clear the RX buffer
