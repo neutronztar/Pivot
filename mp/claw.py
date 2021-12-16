@@ -18,7 +18,7 @@ def time_it(func):
 
 
 class Claw:
-    """da claw"""
+    """Da Claw"""
 
     def __init__(self, dir_com):
         """dir_com: pin for changing direction of communication"""
