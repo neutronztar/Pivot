@@ -1,30 +1,25 @@
 import time
 from math import isinf
 from micropython import const
-from rotary_irq_esp import RotaryIRQ
+from machine import ADC, Pin
 from claw import Claw, time_it
+from constants import *
 
 
 def main():
     claw = Claw(22)
 
-    speedKnob = RotaryIRQ(pin_num_clk=21,
-                        pin_num_dt=19,
-                        min_val=-13,
-                        max_val=13,
-                        reverse=True,
-                        range_mode=RotaryIRQ.RANGE_BOUNDED)
-    speedKnob.set(value=7)
+    # Left and right joystick potentiometer
+    potX = ADC(Pin(33))
+    potX.atten(ADC.ATTN_11DB)
 
+    # Front and back joystick potentiometer
+    potY = ADC(Pin(32))
+    potY.atten(ADC.ATTN_11DB)
 
-    radKnob = RotaryIRQ(pin_num_clk=23,
-                        pin_num_dt=18,
-                        min_val=4, # will be * 5
-                        max_val=30,
-                        reverse=True,
-                        range_mode=RotaryIRQ.RANGE_BOUNDED)
-    radKnob.set(value=12) # 60mm radius
-    
+    # Up and Down joystick potentiometer
+    potZ = ADC(Pin(35))
+    potZ.atten(ADC.ATTN_11DB)
 
     speedTable = {
     #speedKnob: numFrames
@@ -50,7 +45,8 @@ def main():
     FRAME_TIME = const(60)      # ms
     
     center = [0, 0, 150]        # center of the circle that the finger tips move along
-    radius = radKnob.value() * 5
+    radius = 50
+    numFrames = -60
     phase = 0                   # sweeps 0-359
     frameStartTime = time.ticks_ms()
     firstLoop = True
@@ -59,7 +55,7 @@ def main():
     ### MAIN LOOP ###
     while True:
         # Update values based on user input
-        phase, numFrames, radius = update_values(phase, speedKnob, radKnob, speedTable, radius)
+        center = update_values(potX, potY, potZ, center)
         
         # If not stopped
         if not isinf(numFrames):
@@ -79,33 +75,50 @@ def main():
             phase = (phase + 360 / numFrames) % 360
 
 
-@time_it
-def update_values(phase, speedKnob, radKnob, speedTable, radius):
+
+def update_values(potX, potY, potZ, center):
     """Update values based on user input"""
+    
+    def bound(val, low, high):
+        return max(low, min(high, val))
+    
+    joyX = potX.read() - X_AVG
+    joyY = potY.read() - Y_AVG
+    joyZ = potZ.read() - Z_AVG
 
-    # speed knob position --> number of frames
-    speedKnobVal = speedKnob.value()
-    if speedKnobVal >= 0:
-        numFrames = -speedTable[speedKnobVal]
+    if joyX > SLOP:
+        targetX = int(min(joyX - SLOP, 1200) * 50/1200)
+    elif joyX < -SLOP:
+        targetX = int(max(joyX + SLOP, -1200) * 50/1200)
     else:
-        numFrames = speedTable[-speedKnobVal] # Negative number of frames reverses direction
-    
-    
-    # If not stopped
-    if not isinf(numFrames):
-        multiple = 360 / (-numFrames)
-        phase = multiple * round(phase / multiple) # round phase to nearest multiple
+        targetX = 0
 
-        # radius knob position --> radius
-        radius = radKnob.value() * 5
-    
-    # If stopped
+    if joyY > SLOP:
+        targetY = int(min(joyY - SLOP, 1200) * 50/1200)
+    elif joyY < -SLOP:
+        targetY = int(max(joyY + SLOP, -1200) * 50/1200)
     else:
-        # Don't allow changing radius
-        radKnob.set(value=int(radius/5))
+        targetY = 0
+
+    if joyZ > SLOP:
+        zStep = int(min(joyZ - SLOP, 1200) * 6/1200)
+    elif joyZ < -SLOP:
+        zStep = int(max(joyZ + SLOP, -1200) * 6/1200)
+    else:
+        zStep = 0
 
 
-    return phase, numFrames, radius
+
+
+    xStep = int((targetX - center[0]) / 4)
+    yStep = int((targetY - center[1]) / 4)
+
+    center[0] += xStep
+    center[1] += yStep
+    center[2] = bound(center[2] + zStep, 100, 180)
+
+
+    return center
 
 
 if __name__ == "__main__":

@@ -155,7 +155,7 @@ class Claw:
 
         return stepPos, z
 
-    @time_it
+
     def calc_frame_angles(self, phase, stride, offsetAngle, radius, center):
         """Calculate all 15 motor angles for a frame"""
 

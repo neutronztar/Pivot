@@ -32,3 +32,9 @@ OFFSET_ANGLE = ((-1,-2,9), (1,-2,9), (-1,-6,9), (1,-4,6), (-1,-6,10))
 KNUCKLE_LIMIT = (45, 135)
 FINGER_LIMIT = (0, 114)
 TIP_LIMIT = (0, 133)
+
+# Potentiometer middle positions
+X_AVG = 1690
+Y_AVG = 1678
+Z_AVG = 1720
+SLOP = 200 # Distance from middle position before something starts happening
