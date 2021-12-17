@@ -1,2 +1,0 @@
-
-(Installed device driver and program several times unsuccessfully. You can move the software from C:\Program Files (x86) original install to "C:\Prgoram Files")

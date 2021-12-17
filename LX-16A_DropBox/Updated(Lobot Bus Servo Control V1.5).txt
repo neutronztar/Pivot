@@ -1,4 +1,0 @@
-Lobot Bus Servo Control(Bus helmsman 40 channel helmsman software) updated V1.5 version, as follows:
-
-1. The input position is limited to 500~2500, which is changed to 0~1000
-2. The problem that cannot be controlled by long press slide rod is solved
