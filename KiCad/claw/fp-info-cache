@@ -1,4 +1,4 @@
-19423890860366471
+19423890860491471
 Battery
 BatteryHolder_Bulgin_BX0036_1xC
 Bulgin Battery Holder, BX0036, Battery Type C (https://www.bulgin.com/products/pub/media/bulgin/data/Battery_holders.pdf)
@@ -58672,7 +58672,7 @@ DZS_Elec_DC-DC_Buck
 
 0
 4
-1
+4
 MyLib
 ESP32_DEVKITV1
 
