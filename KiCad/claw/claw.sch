@@ -886,4 +886,19 @@ Text Notes 750  5650 0    118  ~ 0
 Joystick Connectors
 Text Notes 1050 4350 0    118  ~ 0
 Power in
+$Comp
+L power:GND #PWR?
+U 1 1 61BD6521
+P 4600 1300
+F 0 "#PWR?" H 4600 1050 50  0001 C CNN
+F 1 "GND" H 4605 1127 50  0000 C CNN
+F 2 "" H 4600 1300 50  0001 C CNN
+F 3 "" H 4600 1300 50  0001 C CNN
+	1    4600 1300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4500 1550 4500 1300
+Wire Wire Line
+	4500 1300 4600 1300
 $EndSCHEMATC
