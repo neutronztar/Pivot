@@ -6,7 +6,7 @@ from micropython import const
 D = (91, 91, 91, 91, 91)
 
 # Angle from X-axis for each finger
-THETA_DEG = (0, 72, 144, 216, 288)
+THETA_DEG = (18, 90, 162, 234, 306)
 THETA = tuple(map(radians, THETA_DEG))
 
 # Vector for each of the finger start positions

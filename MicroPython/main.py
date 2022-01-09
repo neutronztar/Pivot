@@ -1,5 +1,5 @@
 import time
-from math import isinf
+from math import isinf, pi
 from micropython import const
 from machine import ADC, Pin
 from claw import Claw, time_it
@@ -62,7 +62,7 @@ def main():
     numFrames = speedTable[speed]
     
     STRIDE = 1.15               # radians, must be less than 2*pi/5
-    OFFSET_ANGLE = -STRIDE / 2  # radians
+    OFFSET_ANGLE = -STRIDE / 2 + pi / 10  # radians
     FRAME_TIME = const(60)      # ms
     
     center = [0, 0, 150]        # center of the circle that the finger tips move along

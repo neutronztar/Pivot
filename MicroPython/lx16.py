@@ -255,7 +255,7 @@ class lx16:
                 time = resp[7] + (resp[8]<<8)
                 return angle, time
             else:
-                print('sending', func.__name__, 'command again')
+                print('sending', command, 'command again')
             
         # if all 5 attempts failed
         return None, None
