@@ -179,7 +179,7 @@ class Claw:
 
 
     def move_to_frame(self, angles, moveTime, firstLoop):
-        """Move all 15 fingers to given angles in moveTime ms"""
+        """Move all 15 motors to given angles in moveTime ms"""
 
         # Slow for first frame cause we don't know current positions
         if firstLoop:

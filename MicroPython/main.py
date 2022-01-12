@@ -79,22 +79,20 @@ def main():
         center, radius, speed, mode = update_values(potX, potY, potZ, center, radius, speed, mode)
         numFrames = speedTable[round(speed)]
         
-        # If not stopped
-        if not isinf(numFrames):
-            # Calculate angles of all 15 servos for next frame
-            angles = claw.calc_frame_angles(phase, STRIDE, OFFSET_ANGLE, radius, center)
+        # Calculate angles of all 15 servos for next frame
+        angles = claw.calc_frame_angles(phase, STRIDE, OFFSET_ANGLE, radius, center)
 
-            # ------Wait------
-            while time.ticks_diff(time.ticks_ms(), frameStartTime) < FRAME_TIME:
-                pass
-            frameStartTime = time.ticks_ms() # reset timer
-            
-            # Move all fingers to frame
-            claw.move_to_frame(angles, FRAME_TIME, firstLoop)
-            firstLoop = False
+        # ------Wait------
+        while time.ticks_diff(time.ticks_ms(), frameStartTime) < FRAME_TIME:
+            pass
+        frameStartTime = time.ticks_ms() # reset timer
+        
+        # Move all fingers to frame
+        claw.move_to_frame(angles, FRAME_TIME, firstLoop)
+        firstLoop = False
 
-            # Increment phase
-            phase = (phase + 360 / numFrames) % 360
+        # Increment phase
+        phase = (phase + 360 / numFrames) % 360
 
 
 
