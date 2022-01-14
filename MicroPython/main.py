@@ -58,7 +58,7 @@ def main():
         13:        20        # fastest
     }
 
-    speed = -6
+    speed = -4
     numFrames = speedTable[speed]
     
     STRIDE = 1.15               # radians, must be less than 2*pi/5
