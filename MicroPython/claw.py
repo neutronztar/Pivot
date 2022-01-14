@@ -169,7 +169,7 @@ class Claw:
             x = cos(angle) * radius
             y = sin(angle) * radius
             xyz[finger] = vect_add(center, (x, y, z))
-        
+
         # Use above coordinates to calculate motor angles for all fingers
         angles = [(0,0,0)] * 5
         for finger in range(5):
