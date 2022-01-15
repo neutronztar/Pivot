@@ -1,3 +1,7 @@
+# This single-file library was originally made by sasilva1998 and then modified by Nick Wallick
+# Original library https://github.com/FunPythonEC/uPy_Lewansoul_LX-16
+# Used to send and recieve commands to and from the LewanSoul LX-16A servos
+
 import machine as m    # needed so that uart can be used
 from micropython import const
 import utime

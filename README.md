@@ -1,8 +1,8 @@
-# RoboClaw
-Open source remake of Mark Setrakian's [Axis 1 and 2](https://www.youtube.com/watch?v=NsFBHqbNKvA&t=72s) robots
+# Pivot
+Pivot is an open source robot similar to Mark Setrakian's [Axis 1 and 2](https://www.youtube.com/watch?v=NsFBHqbNKvA&t=72s).
 
 
-<img src="https://github.com/neutronztar/RoboClaw/blob/main/media/frontimage.png?raw=true" alt="drawing" width="400" />
+<img src="https://github.com/neutronztar/RoboClaw/blob/main/media/frontimage.png?raw=true" alt="drawing" width="800" />
 
 ## Bill of Materials
 ### General Parts
