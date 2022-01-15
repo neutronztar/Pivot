@@ -2,7 +2,7 @@
 Open source remake of Mark Setrakian's [Axis 1 and 2](https://www.youtube.com/watch?v=NsFBHqbNKvA&t=72s) robots
 
 
-<img src="https://github.com/neutronztar/RoboClaw/blob/main/media/verticalpic.jpeg?raw=true" alt="drawing" width="400" />
+<img src="https://github.com/neutronztar/RoboClaw/blob/main/media/frontimage.png?raw=true" alt="drawing" width="400" />
 
 ## Bill of Materials
 ### General Parts
