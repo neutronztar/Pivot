@@ -1,5 +1,5 @@
 # Pivot
-Pivot is an open source robotic art piece similar to Mark Setrakian's [Axis 1 and 2](https://www.youtube.com/watch?v=NsFBHqbNKvA&t=72s).
+Pivot is an open source robotic art piece similar to Mark Setrakian's [Axis 1 and 2](https://www.youtube.com/watch?v=NsFBHqbNKvA&t=72s). Here is [a video](https://youtu.be/PGe4sWHx0f0) about how I designed and built it
 
 
 <img src="https://github.com/neutronztar/RoboClaw/blob/main/media/frontimage.png?raw=true" alt="drawing" width="800" />
