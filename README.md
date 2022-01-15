@@ -1,6 +1,9 @@
 # RoboClaw
 Open source remake of Mark Setrakian's [Axis 1 and 2](https://www.youtube.com/watch?v=NsFBHqbNKvA&t=72s) robots
 
+
+<img src="https://github.com/neutronztar/RoboClaw/blob/main/media/verticalpic.jpeg?raw=true" alt="drawing" width="400" />
+
 ## Bill of Materials
 ### General Parts
 | Part                                   | Quantity    | Approx Price   | Total | Notes |
@@ -41,3 +44,7 @@ Open source remake of Mark Setrakian's [Axis 1 and 2](https://www.youtube.com/wa
 | base.STL | 1 |
 
 #### Approximate Grand Total: $466
+
+
+## The Code
+To make this machine do its magic, every ".py" file in the root of the "MicroPython" directory must be uploaded to the ESP32. I used the utility ["rshell"](https://pypi.org/project/rshell/) to do this. Also the ESP32 must first be loaded with a [MicroPython binary](https://micropython.org/download/esp32/) (tested on v1.17).
